@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Птици — Quiz (online)</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:#f8fafc; color:#111}
+    .wrap{max-width:720px;margin:18px auto;padding:12px}
+    h1{font-size:1.1rem;margin:.2rem 0}
+    .card{background:white;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.06);overflow:hidden}
+    .imgbox{aspect-ratio:4/3;background:#eee;display:flex;align-items:center;justify-content:center}
+    .imgbox img{width:100%;height:100%;object-fit:cover}
+    .choices{display:grid;gap:10px;padding:12px}
+    button.choice{padding:12px;border-radius:10px;border:1px solid #e6e6e6;background:white;font-size:1rem}
+    button.choice.correct{border-color:#2e7d32;background:#e8f5e9}
+    button.choice.wrong{border-color:#c62828;background:#ffebee}
+    .controls{display:flex;gap:8px;padding:12px;align-items:center}
+    .pill{padding:6px 10px;border-radius:999px;background:#efefef;font-size:.9rem}
+    .small{font-size:.9rem;color:#666}
+    footer{padding:10px;text-align:center;color:#666;font-size:.85rem}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header style="display:flex;justify-content:space-between;align-items:center">
+      <h1>Птици — познай ✨</h1>
+      <div id="score" class="pill">—</div>
+    </header>
+
+    <div class="card" id="card">
+      <div class="imgbox"><img id="photo" alt="птица" src=""></div>
+      <div id="choices" class="choices"></div>
+      <div class="controls">
+        <button id="next">Следваща</button>
+        <div id="status" class="pill small">готово</div>
+      </div>
+    </div>
+
+    <footer>
+      Данни от Atlas (BSPB). If the site blocks requests the app uses a proxy (AllOrigins) as a fallback. Use for **personal learning only**.
+    </footer>
+  </div>
+
+<script>
+/*
+  Simple online BSPB quiz:
+  - speciesURLs: a small curated list of atlas URLs (you can add more)
+  - on each question: fetch one page (try direct fetch; if fails, use AllOrigins)
+  - parse <h1> for Bulgarian name and first reasonable <img> for photo
+  - pick two other random species from the list and fetch names for wrong choices
+  - gentle rate-limiting and caching to avoid hammering BSPB
+*/
+
+const speciesURLs = [
+  "https://atlas.bspb.org/vidove/%D0%BA%D0%BE%D1%81/",
+  "https://atlas.bspb.org/vidove/%D0%BE%D1%81%D0%BE%D1%8F%D0%B4/",
+  "https://atlas.bspb.org/vidove/%D0%B2%D0%BE%D0%B4%D0%B5%D0%BD-%D0%BA%D0%BE%D1%81/",
+  "https://atlas.bspb.org/vidove/%D0%BE%D0%B1%D0%B8%D0%BA%D0%BD%D0%BE%D0%B2%D0%B5%D0%BD-%D0%BC%D0%B8%D1%88%D0%B5%D0%BB%D0%BE%D0%B2/",
+  "https://atlas.bspb.org/vidove/%D0%B1%D0%B5%D0%BB%D0%BE%D0%BE%D0%BF%D0%B0%D1%88%D0%B0%D1%82-%D0%BC%D0%B8%D1%88%D0%B5%D0%BB%D0%BE%D0%B2/",
+  "https://atlas.bspb.org/vidove/%D0%BA%D0%BE%D0%BB%D1%85%D0%B8%D0%B4%D1%81%D0%BA%D0%B8-%D1%84%D0%B0%D0%B7%D0%B0%D0%BD/",
+  "https://atlas.bspb.org/vidove/%D1%89%D0%B8%D0%B3%D0%BB%D0%B5%D1%86/",
+  "https://atlas.bspb.org/vidove/%D1%87%D1%83%D1%85%D0%B0%D0%BB/"
+];
+
+const photoEl = document.getElementById('photo');
+const choicesEl = document.getElementById('choices');
+const nextBtn = document.getElementById('next');
+const scoreEl = document.getElementById('score');
+const statusEl = document.getElementById('status');
+
+let cache = {}; // url -> {name, img}
+let score = 0, attempts = 0;
+let current = null;
+let lastUsed = -1;
+
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+function pickRandom(arr, except){ let tries=0; while(tries++<50){ const x = arr[Math.floor(Math.random()*arr.length)]; if(!except || x!==except) return x; } return arr[0]; }
+
+async function fetchWithFallback(url){
+  // try direct fetch first
+  try {
+    statusEl.textContent = 'fetching (direct)...';
+    const r = await fetch(url);
+    // if CORS blocks, fetch usually throws — but if we get here check status
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    return { text, proxied: false };
+  } catch (err) {
+    // fallback to AllOrigins proxy
+    statusEl.textContent = 'CORS blocked — using proxy...';
+    const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url); // free proxy
+    const r2 = await fetch(proxy);
+    if (!r2.ok) throw new Error('Proxy failed: ' + r2.status);
+    const text2 = await r2.text();
+    return { text: text2, proxied: true };
+  }
+}
+
+function parseSpecies(htmlText, baseUrl){
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlText, 'text/html');
+  // name: first <h1>
+  let name = doc.querySelector('h1')?.textContent?.trim() || '';
+  // remove latin name in parentheses if present: "Кос (Turdus merula)"
+  name = name.replace(/\s*\(.*\)$/,'').trim();
+
+  // find a reasonable image
+  const selectors = ['article img','.entry-content img','.content img','.main img','img'];
+  let img = null;
+  for (const sel of selectors){
+    const imgs = doc.querySelectorAll(sel);
+    for (const im of imgs){
+      const src = im.getAttribute('src') || im.getAttribute('data-src') || '';
+      if(!src) continue;
+      const low = src.toLowerCase();
+      if (low.includes('logo') || low.includes('icon') || low.endsWith('.svg') || low.startsWith('data:')) continue;
+      img = src;
+      break;
+    }
+    if (img) break;
+  }
+  if (img){
+    // make absolute with baseUrl
+    try {
+      img = new URL(img, baseUrl).href;
+    } catch(e){}
+  }
+  return { name, img };
+}
+
+async function loadSpecies(url){
+  if (cache[url]) return cache[url];
+  // polite small delay to avoid hammering
+  await sleep(350 + Math.random()*250);
+  const {text, proxied} = await fetchWithFallback(url);
+  const parsed = parseSpecies(text, url);
+  // if no image found, we still keep the name
+  const entry = { name: parsed.name || '—', img: parsed.img || '' , proxied };
+  cache[url] = entry;
+  return entry;
+}
+
+async function nextQuestion(){
+  choicesEl.innerHTML = '';
+  statusEl.textContent = 'loading...';
+  // pick a species we haven't shown recently
+  lastUsed = (lastUsed + 1) % speciesURLs.length;
+  const url = speciesURLs[lastUsed];
+  try {
+    current = await loadSpecies(url);
+  } catch (e) {
+    statusEl.textContent = 'Error loading species.';
+    console.error(e);
+    return;
+  }
+  if (!current.img) {
+    statusEl.textContent = 'No image found for this species — skipping.';
+    await sleep(600);
+    return nextQuestion();
+  }
+
+  // now pick two other random species and ensure we have their names
+  const other = [];
+  while (other.length < 2){
+    const cand = pickRandom(speciesURLs, url);
+    if (other.includes(cand)) continue;
+    try {
+      const entry = await loadSpecies(cand);
+      if (entry.name && entry.name !== current.name) other.push(entry.name);
+    } catch(e){
+      // ignore and pick another
+    }
+  }
+
+  // build choices
+  const options = [ current.name, ...other ].sort(()=>Math.random()-0.5);
+
+  // render photo and choices
+  photoEl.src = current.img;
+  photoEl.alt = current.name;
+  choicesEl.innerHTML = '';
+  options.forEach(opt=>{
+    const b = document.createElement('button');
+    b.className = 'choice';
+    b.textContent = opt;
+    b.onclick = () => {
+      attempts++;
+      if (opt === current.name){
+        score++;
+        b.classList.add('correct');
+        statusEl.textContent = 'Вярно! ' + current.name + (current.proxied ? ' (via proxy)' : '');
+      } else {
+        b.classList.add('wrong');
+        // highlight correct
+        [...choicesEl.children].forEach(c => {
+          if (c.textContent === current.name) c.classList.add('correct');
+        });
+        statusEl.textContent = 'Грешно — ' + current.name + (current.proxied ? ' (via proxy)' : '');
+      }
+      updateScore();
+      // disable all
+      [...choicesEl.children].forEach(x=>x.disabled=true);
+    };
+    choicesEl.appendChild(b);
+  });
+  updateScore();
+  statusEl.textContent = current.proxied ? 'Loaded (proxy)' : 'Loaded (direct)';
+}
+
+function updateScore(){ scoreEl.textContent = `${score} / ${attempts}`; }
+
+nextBtn.addEventListener('click', nextQuestion);
+
+// start
+(async ()=> {
+  // pre-cache first two for speed
+  try {
+    await loadSpecies(speciesURLs[0]);
+    if (speciesURLs.length>1) await loadSpecies(speciesURLs[1]);
+  } catch(e){}
+  nextQuestion();
+})();
+</script>
+</body>
+</html>
