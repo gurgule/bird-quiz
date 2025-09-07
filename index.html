@@ -33,57 +33,47 @@
 
   <script>
     const birds = [
-      { name: "Кос", img: "https://www.birdsinbulgaria.org/images/birds/1.jpg" },
-      { name: "Осоояд", img: "https://www.birdsinbulgaria.org/images/birds/2.jpg" },
-      { name: "Синигер", img: "https://www.birdsinbulgaria.org/images/birds/3.jpg" },
-      { name: "Врабче", img: "https://www.birdsinbulgaria.org/images/birds/4.jpg" },
-      { name: "Гълъб", img: "https://www.birdsinbulgaria.org/images/birds/5.jpg" },
-      { name: "Ястреб", img: "https://www.birdsinbulgaria.org/images/birds/6.jpg" },
-      { name: "Кълвач", img: "https://www.birdsinbulgaria.org/images/birds/7.jpg" },
-      { name: "Щъркел", img: "https://www.birdsinbulgaria.org/images/birds/8.jpg" },
-      { name: "Ястреб", img: "https://www.birdsinbulgaria.org/images/birds/9.jpg" },
-      { name: "Лястовица", img: "https://www.birdsinbulgaria.org/images/birds/10.jpg" },
-      { name: "Славей", img: "https://www.birdsinbulgaria.org/images/birds/11.jpg" },
-      { name: "Гъска", img: "https://www.birdsinbulgaria.org/images/birds/12.jpg" },
-      { name: "Ловец", img: "https://www.birdsinbulgaria.org/images/birds/13.jpg" },
-      { name: "Скален орел", img: "https://www.birdsinbulgaria.org/images/birds/14.jpg" },
-      { name: "Кукумявка", img: "https://www.birdsinbulgaria.org/images/birds/15.jpg" },
-      { name: "Скален гълъб", img: "https://www.birdsinbulgaria.org/images/birds/16.jpg" },
-      { name: "Палмов гълъб", img: "https://www.birdsinbulgaria.org/images/birds/17.jpg" },
-      { name: "Ловец", img: "https://www.birdsinbulgaria.org/images/birds/18.jpg" },
-      { name: "Скален орел", img: "https://www.birdsinbulgaria.org/images/birds/19.jpg" },
-      { name: "Кукумявка", img: "https://www.birdsinbulgaria.org/images/birds/20.jpg" },
-      { name: "Скален гълъб", img: "https://www.birdsinbulgaria.org/images/birds/21.jpg" },
-      { name: "Палмов гълъб", img: "https://www.birdsinbulgaria.org/images/birds/22.jpg" },
-      { name: "Ловец", img: "https://www.birdsinbulgaria.org/images/birds/23.jpg" },
-      { name: "Скален орел", img: "https://www.birdsinbulgaria.org/images/birds/24.jpg" },
-      { name: "Кукумявка", img: "https://www.birdsinbulgaria.org/images/birds/25.jpg" },
-      { name: "Скален гълъб", img: "https://www.birdsinbulgaria.org/images/birds/26.jpg" },
-      { name: "Палмов гълъб", img: "https://www.birdsinbulgaria.org/images/birds/27.jpg" },
-      { name: "Ловец", img: "https://www.birdsinbulgaria.org/images/birds/28.jpg" },
-      { name: "Скален орел", img: "https://www.birdsinbulgaria.org/images/birds/29.jpg" },
-      { name: "Кукумявка", img: "https://www.birdsinbulgaria.org/images/birds/30.jpg" },
-      { name: "Скален гълъб", img: "https://www.birdsinbulgaria.org/images/birds/31.jpg" },
-      { name: "Палмов гълъб", img: "https://www.birdsinbulgaria.org/images/birds/32.jpg" },
-      { name: "Ловец", img: "https://www.birdsinbulgaria.org/images/birds/33.jpg" },
-      { name: "Скален орел", img: "https://www.birdsinbulgaria.org/images/birds/34.jpg" },
-      { name: "Кукумявка", img: "https://www.birdsinbulgaria.org/images/birds/35.jpg" },
-      { name: "Скален гълъб", img: "https://www.birdsinbulgaria.org/images/birds/36.jpg" },
-      { name: "Палмов гълъб", img: "https://www.birdsinbulgaria.org/images/birds/37.jpg" },
-      { name: "Ловец", img: "https://www.birdsinbulgaria.org/images/birds/38.jpg" },
-      { name: "Скален орел", img: "https://www.birdsinbulgaria.org/images/birds/39.jpg" },
-      { name: "Кукумявка", img: "https://www.birdsinbulgaria.org/images/birds/40.jpg" },
-      { name: "Скален гълъб", img: "https://www.birdsinbulgaria.org/images/birds/41.jpg" },
-      { name: "Палмов гълъб", img: "https://www.birdsinbulgaria.org/images/birds/42.jpg" },
-      { name: "Ловец", img: "https://www.birdsinbulgaria.org/images/birds/43.jpg" },
-      { name: "Скален орел", img: "https://www.birdsinbulgaria.org/images/birds/44.jpg" },
-      { name: "Кукумявка", img: "https://www.birdsinbulgaria.org/images/birds/45.jpg" },
-      { name: "Скален гълъб", img: "https://www.birdsinbulgaria.org/images/birds/46.jpg" },
-      { name: "Палмов гълъб", img: "https://www.birdsinbulgaria.org/images/birds/47.jpg" },
-      { name: "Ловец", img: "https://www.birdsinbulgaria.org/images/birds/48.jpg" },
-      { name: "Скален орел", img: "https://www.birdsinbulgaria.org/images/birds/49.jpg" },
-      { name: "Кукумявка", img: "https://www.birdsinbulgaria.org/images/birds/50.jpg" }
-    ];
+  {
+    name: "Кос",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/318408301/900"
+  },
+  {
+    name: "Черен дрозд",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/312382961/900"
+  },
+  {
+    name: "Синьогушка",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/401184001/900"
+  },
+  {
+    name: "Славей",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/320110191/900"
+  },
+  {
+    name: "Славейче",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/312350141/900"
+  },
+  {
+    name: "Градинска овесарка",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/318257821/900"
+  },
+  {
+    name: "Полска овесарка",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/312295701/900"
+  },
+  {
+    name: "Полска чучулига",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/312244621/900"
+  },
+  {
+    name: "Сива чапла",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/318075061/900"
+  },
+  {
+    name: "Бяла чапла",
+    img: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/312263891/900"
+  }
+];
 
     let currentBird = {};
     let score = 0;
