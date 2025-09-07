@@ -114,7 +114,13 @@ function parseSpecies(htmlText, baseUrl){
       const src = im.getAttribute('src') || im.getAttribute('data-src') || '';
       if(!src) continue;
       const low = src.toLowerCase();
-      if (low.includes('logo') || low.includes('icon') || low.endsWith('.svg') || low.startsWith('data:')) continue;
+      if (
+  low.includes('logo') || 
+  low.includes('icon') || 
+  low.includes('flag') || 
+  low.endsWith('.svg') || 
+  low.startsWith('data:')
+) continue;
       img = src;
       break;
     }
